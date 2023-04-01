@@ -1,6 +1,6 @@
-const fs = require("fs/promises");
+const fs = require("fs").promises;
 const path = require("path");
-import { v4 as uuidv4 } from "uuid";
+const { v4: uuidv4 } = require("uuid");
 
 const contactsPath = path.join(__dirname, "contacts.json");
 
@@ -11,7 +11,7 @@ const listContacts = async () => {
 };
 
 const getContactById = async (contactId) => {
-  const contacts = await getListContacts();
+  const contacts = await listContacts();
   const contactById = contacts.find((item) => item.id === contactId.toString());
   if (!contactById) {
     return null;
@@ -20,8 +20,8 @@ const getContactById = async (contactId) => {
 };
 
 const removeContact = async (contactId) => {
-  const contacts = await getListContacts();
-  const idx = contacts.findIndex((item) => item.id === contactId.toString());
+  const contacts = await listContacts();
+  const idx = contacts.findIndex((item) => item.id === contactId);
   if (idx === -1) {
     return null;
   }
@@ -32,12 +32,10 @@ const removeContact = async (contactId) => {
   return contacts[idx];
 };
 
-const addContact = async ({name,email,phone}) => {
-  const contacts = await getListContacts();
+const addContact = async (body) => {
+  const contacts = await listContacts();
   const addedContact = {
-    name,
-    email,
-    phone,
+    ...body,
     id: uuidv4(),
   };
   contacts.push(addedContact);
@@ -46,14 +44,18 @@ const addContact = async ({name,email,phone}) => {
 };
 
 const updateContact = async (contactId, body) => {
-  const contacts = await getAll();
-  const index = contacts.findIndex((item) => item.id === contactId);
-  if (index === -1) {
-    return null;
-  }
-  contacts[index] = { contactId, ...body };
-  await fs.writeFile(contactsPath, JSON.stringify(books, null, 2));
-  return books[index];
+  const contacts = await listContacts();
+  const newListContact = contacts.map((item) => {
+    if (item.id !== contactId) {
+      return { ...item };
+    }
+    return {
+      id: contactId,
+      ...body,
+    };
+  });
+  await fs.writeFile(contactsPath, JSON.stringify(newListContact));
+  return newListContact.find((item) => item.id === contactId);
 };
 
 module.exports = {
