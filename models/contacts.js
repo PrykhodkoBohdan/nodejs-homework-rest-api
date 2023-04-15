@@ -1,67 +1,53 @@
-const fs = require("fs").promises;
-const path = require("path");
-const { v4: uuidv4 } = require("uuid");
+const { Schema, model } = require("mongoose");
+const Joi = require("joi");
 
-const contactsPath = path.join(__dirname, "contacts.json");
+const contactShema = new Schema({
+  name: {
+    type: String,
+    require:  [true, 'Set name for contact'],
+  },
+  email: {
+    type: String,
+  },
+  phone: {
+    type: String,
+    require: [true, 'Set phone for contact'],
+  },
+  favorite: {
+    type: Boolean,
+    default: false,
+  },
+}, {versionKey: false, timestamps: true});
 
-const listContacts = async () => {
-  const data = await fs.readFile(contactsPath);
-  const contacts = JSON.parse(data);
-  return contacts;
-};
 
-const getContactById = async (contactId) => {
-  const contacts = await listContacts();
-  const contactById = contacts.find((item) => item.id === contactId.toString());
-  if (!contactById) {
-    return null;
-  }
-  return contactById;
-};
+const addShema = Joi.object({
+  name: Joi.string().required().messages({
+    "any.required": `"name" is required`,
+    "string.empty": `"name" cannot be empty`
+  }),
+  email: Joi.string().required().messages({
+    "any.required": `"email" is required`,
+    "string.empty": `"email" cannot be empty`
+  }),
+  phone: Joi.string().required().messages({
+    "any.required": `"phone" is required`,
+    "string.empty": `"phone" cannot be empty`
+  }),
+  favorite: Joi.boolean(),
+})
 
-const removeContact = async (contactId) => {
-  const contacts = await listContacts();
-  const idx = contacts.findIndex((item) => item.id === contactId);
-  if (idx === -1) {
-    return null;
-  }
-  const newContacts = contacts.filter(
-    (item) => item.id !== contactId.toString()
-  );
-  await fs.writeFile(contactsPath, JSON.stringify(newContacts));
-  return contacts[idx];
-};
+const favoriteShema = Joi.object({
+  favorite: Joi.boolean().required(),
+})
+contactShema.post("save", (error, data, next) => {
+  error.status = 400;
+  next();
+})
 
-const addContact = async (body) => {
-  const contacts = await listContacts();
-  const addedContact = {
-    ...body,
-    id: uuidv4(),
-  };
-  contacts.push(addedContact);
-  await fs.writeFile(contactsPath, JSON.stringify(contacts));
-  return addedContact;
-};
-
-const updateContact = async (contactId, body) => {
-  const contacts = await listContacts();
-  const newListContact = contacts.map((item) => {
-    if (item.id !== contactId) {
-      return { ...item };
-    }
-    return {
-      id: contactId,
-      ...body,
-    };
-  });
-  await fs.writeFile(contactsPath, JSON.stringify(newListContact));
-  return newListContact.find((item) => item.id === contactId);
-};
+const Contact = model("contact", contactShema);
 
 module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-};
+  addShema,
+  favoriteShema,
+  Contact
+}
