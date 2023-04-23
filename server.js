@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const app = require('./app')
-const {DB_HOST} = require('./config');
+const {DB_HOST} = require('./secret');
 
 mongoose.connect(DB_HOST)
 .then(() => {app.listen(3000, () => {
