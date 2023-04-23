@@ -1,4 +1,4 @@
-const { Contact, addShema, favoriteShema } = require("../models/contacts");
+const { Contact, addSchema, favoriteSchema } = require("../models/contacts");
 const { HttpError } = require("../helpers");
 
 const getAllContacts = async (req, res, next) => {
@@ -27,7 +27,7 @@ const getContactById = async (req, res, next) => {
 
 const postContacts = async (req, res, next) => {
   try {
-    const { error } = addShema.validate(req.body);
+    const { error } = addSchema.validate(req.body);
     if (error) {
       throw HttpError(400, "Missing required name field");
     }
@@ -55,7 +55,7 @@ const deleteContacts = async (req, res, next) => {
 
 const putContacts = async (req, res, next) => {
   try {
-    const { error } = addShema.validate(req.body);
+    const { error } = addSchema.validate(req.body);
     if (error) {
       throw HttpError(400, "Missing required name field");
     }
@@ -73,7 +73,7 @@ const putContacts = async (req, res, next) => {
 
 const updateStatusContact = async (req, res, next) => {
   try {
-    const { error } = favoriteShema.validate(req.body);
+    const { error } = favoriteSchema.validate(req.body);
     if (error) {
       throw HttpError(400, "Missing field favorite");
     }

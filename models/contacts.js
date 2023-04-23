@@ -1,7 +1,7 @@
 const { Schema, model } = require("mongoose");
 const Joi = require("joi");
 
-const contactShema = new Schema({
+const contactSchema = new Schema({
   name: {
     type: String,
     require:  [true, 'Set name for contact'],
@@ -17,10 +17,15 @@ const contactShema = new Schema({
     type: Boolean,
     default: false,
   },
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'user',
+    required: true,
+  }
 }, {versionKey: false, timestamps: true});
 
 
-const addShema = Joi.object({
+const addSchema = Joi.object({
   name: Joi.string().required().messages({
     "any.required": `"name" is required`,
     "string.empty": `"name" cannot be empty`
@@ -36,18 +41,18 @@ const addShema = Joi.object({
   favorite: Joi.boolean(),
 })
 
-const favoriteShema = Joi.object({
+const favoriteSchema = Joi.object({
   favorite: Joi.boolean().required(),
 })
-contactShema.post("save", (error, data, next) => {
+contactSchema.post("save", (error, data, next) => {
   error.status = 400;
   next();
 })
 
-const Contact = model("contact", contactShema);
+const Contact = model("contact", contactSchema);
 
 module.exports = {
-  addShema,
-  favoriteShema,
+  addSchema,
+  favoriteSchema,
   Contact
 }
