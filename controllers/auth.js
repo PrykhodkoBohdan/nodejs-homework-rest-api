@@ -24,7 +24,9 @@ const register = async(req, res, next) => {
       throw HttpError(409, "Email in use");
     }
     const hashPassword = await bcrypt.hash(password, 10);
-    const result = await User.create({...req.body, password: hashPassword});
+    const avatarURL = gravatar.url(email);
+    const result = await User.create({...req.body, password: hashPassword,avatarURL});
+   
 
     res.status(201).json({
       email: result.email,
