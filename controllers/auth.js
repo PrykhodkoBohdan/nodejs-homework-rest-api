@@ -1,6 +1,11 @@
 const jwt = require("jsonwebtoken");
 const {SECRET_KEY} = require("../secret");
+const gravatar = require("gravatar");
+const fs = require("fs/promises");
+const path = require("path");
+const jimp = require("jimp");
 
+const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
 const {registerSchema, User} = require("../models/user");
 const { HttpError } = require("../helpers/HttpError");
@@ -100,10 +105,41 @@ const logout = async(req, res, next) => {
     next(error);
   }
 }
+const updateAvatar = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const { path: tempUpload, filename } = req.file;
+    const avatarName = `${_id}_${filename}`;
+
+    jimp
+      .read(`./temp/${filename}`)
+      .then((img) => {
+        return img
+        .resize(250, 250)
+        .write(`./public/avatars/${avatarName}`);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    const resultUpload = path.join(avatarsDir, avatarName);
+
+    await fs.rename(tempUpload, resultUpload);
+
+    const avatarURL = path.join("avatars", avatarName);
+
+    await User.findByIdAndUpdate(_id, { avatarURL });
+
+    res.json({ avatarURL });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   getCurrent,
   register, 
   login,
-  logout
+  logout,
+  updateAvatar,
 }
